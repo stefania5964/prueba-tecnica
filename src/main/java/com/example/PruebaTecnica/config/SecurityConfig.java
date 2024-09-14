@@ -1,22 +1,54 @@
 package com.example.PruebaTecnica.config;
-import com.example.PruebaTecnica.model.Rol;
+import com.example.PruebaTecnica.model.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig  {
     @Bean
+    public UserDetailsService userDetailsService() {
+        return new CustomUserDetailsService(); // Implementa tu UserDetailsService aquí
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+
+                .authorizeRequests(authorizeRequests ->
+                        authorizeRequests
+                                .requestMatchers("/api/login").permitAll()
+                                .requestMatchers("/empresas").hasAnyRole("ADMIN", "EXTERNO")
+                                .requestMatchers("/**").hasRole("ADMIN")
+                )
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling
+                                .authenticationEntryPoint(new JwtAuthenticationEntryPoint()) // Manejar errores de autenticación
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .build();
+    }
+}
+    /*@Bean
     public UserDetailsService userDetailsService() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
         manager.createUser(User.withUsername("admin@example.com") .password(passwordEncoder().encode("admin123"))
@@ -61,7 +93,7 @@ public class SecurityConfig {
                         logout
                                 .permitAll()
                 );
-                /*.formLogin(formLogin ->
+                .formLogin(formLogin ->
                         formLogin
                                 .loginPage("/loginx")
                                 .defaultSuccessUrl("/visualizarEmpresas")
@@ -71,7 +103,7 @@ public class SecurityConfig {
                 .logout(logout ->
                         logout
                                 .permitAll()
-                );*/
+                );
         return http.build();
-    }
-}
+    }*/
+
