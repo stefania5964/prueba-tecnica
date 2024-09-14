@@ -24,7 +24,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream().map(role -> (GrantedAuthority) () -> "ROLE_" + role).toList();
+        return roles.stream().map(role -> (GrantedAuthority) () ->   role).toList();
     }
 
     @Override

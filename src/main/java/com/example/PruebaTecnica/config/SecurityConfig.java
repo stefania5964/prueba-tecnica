@@ -19,11 +19,10 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("admin")
-                .password(passwordEncoder().encode("admin123"))
+        manager.createUser(User.withUsername("admin@example.com") .password(passwordEncoder().encode("admin123"))
                 .roles(Rol.ADMIN.name())
                 .build());
-        manager.createUser(User.withUsername("externo")
+        manager.createUser(User.withUsername("externo@example.com")
                 .password(passwordEncoder().encode("externo123"))
                 .roles(Rol.EXTERNO.name())
                 .build());
@@ -44,14 +43,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+
                 .authorizeRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/**").permitAll()
-                                /*.requestMatchers("/empresa/**").hasRole(Rol.ADMIN.name())
-                                .requestMatchers("/productos/**").hasRole(Rol.ADMIN.name())
-                                .requestMatchers("/inventario/**").hasRole(Rol.ADMIN.name())
-                                .requestMatchers("/visualizarEmpresas/**").hasRole(Rol.EXTERNO.name())*/
-                                //.requestMatchers("/**").denyAll()
+                                .requestMatchers("/api/login").permitAll()
+                                .requestMatchers("/empresas").hasAnyRole("ADMIN", "EXTERNO")
+                                .requestMatchers("/**").hasRole("ADMIN")
+                )
+                .formLogin(formLogin ->
+                        formLogin
+                                .loginProcessingUrl("/api/login")
+                                .defaultSuccessUrl("/empresas", true)
+                                .failureUrl("/api/login?error=true")
+                                .permitAll()
+                )
+                .logout(logout ->
+                        logout
+                                .permitAll()
                 );
                 /*.formLogin(formLogin ->
                         formLogin
